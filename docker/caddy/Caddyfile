@@ -1,5 +1,5 @@
-blog-api.local, admin.blog-api.local {
-	tls /etc/caddy/certs/blog-api.local.pem /etc/caddy/certs/blog-api.local-key.pem
+sport-catalog.local, admin.sport-catalog.local {
+	tls /etc/caddy/certs/sport-catalog.local.pem /etc/caddy/certs/sport-catalog.local-key.pem
 
 	reverse_proxy laravel.test:80
 }

@@ -71,7 +71,7 @@ VITE_PORT=5173
 Leave `DB_DATABASE` unset to use `database/database.sqlite`. If you set it,
 use an absolute path to the SQLite file.
 
-The supplied `.env.example` defaults to HTTPS on `blog-api.local`; the
+The supplied `.env.example` defaults to HTTPS on `sport-catalog.local`; the
 overrides above are needed for the HTTP setup described here. Log mail is
 written to `storage/logs/laravel.log` instead of being sent externally.
 
@@ -134,7 +134,7 @@ php artisan queue:work
 ```
 
 The repository also includes a Sail/Caddy stack for local HTTPS on
-`blog-api.local` and `admin.blog-api.local`. It requires its own database,
+`sport-catalog.local` and `admin.sport-catalog.local`. It requires its own database,
 hostname, and certificate configuration; see
 [local certificate instructions](docker/certs/README.md).
 The Vite development server is configured for those custom domains.
