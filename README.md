@@ -1,58 +1,201 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sport Catalog
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A sports equipment storefront built with Laravel 13, Inertia.js, React 18,
+Tailwind CSS, and Vite. The current implementation focuses on Module 1,
+Product Catalog. The storefront uses Polish and displays prices in PLN.
 
-## About Laravel
+This guide covers the root Laravel/Inertia application. The `symfony-api/`
+directory contains a separate application.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- Product listings with pagination, search, and price sorting.
+- Categories and subcategories, including filtering by a category and its descendants.
+- Separate brand and manufacturer dictionaries linked to products.
+- Product details with descriptions, image galleries, and technical specifications.
+- Availability based on variant stock, with unavailable purchase actions disabled.
+- Fixed demonstration prices in PLN, including VAT.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Existing cart, checkout, account, and order features are also available.
+Catalog data is currently maintained through Eloquent models and seed data;
+the catalog administration interface is planned for Module 12.
 
-## Learning Laravel
+## Requirements
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- PHP 8.3 or later, with the extensions required by Composer and `pdo_sqlite`.
+- Composer 2.
+- Node.js 22.13 or later and npm, compatible with the locked frontend dependencies.
+- Git.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+The local setup below uses SQLite. Docker, PostgreSQL, and Redis are not
+required for this setup.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Installation
 
-## Agentic Development
+### 1. Clone the repository and install dependencies
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```sh
+git clone https://github.com/dimitri-lda/sport-catalog.git
+cd sport-catalog
+composer install
+npm ci --ignore-scripts
+cp .env.example .env
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Configure the local environment
 
-## Contributing
+Edit these values in `.env` for a local HTTP server:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```dotenv
+APP_NAME="Sport Catalog"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+APP_LOCALE=pl
+APP_FALLBACK_LOCALE=pl
 
-## Code of Conduct
+DB_CONNECTION=sqlite
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=false
+QUEUE_CONNECTION=database
+CACHE_STORE=database
+MAIL_MAILER=log
 
-## Security Vulnerabilities
+VITE_APP_NAME="Sport Catalog"
+VITE_HTTPS=false
+VITE_HOST=127.0.0.1
+VITE_PORT=5173
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Leave `DB_DATABASE` unset to use `database/database.sqlite`. If you set it,
+use an absolute path to the SQLite file.
 
-## License
+The supplied `.env.example` defaults to HTTPS on `blog-api.local`; the
+overrides above are needed for the HTTP setup described here. Log mail is
+written to `storage/logs/laravel.log` instead of being sent externally.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 3. Generate the key and create the database
+
+```sh
+php artisan key:generate
+touch database/database.sqlite
+php artisan migrate
+```
+
+### 4. Load demonstration data
+
+For a new demonstration database:
+
+```sh
+php artisan db:seed
+```
+
+The seeder creates eight sports products, category hierarchies, brands,
+manufacturers, specifications, gallery images, and variants. Court Backpack
+is intentionally out of stock. Images, specifications, and prices are
+demonstration data. Remote images require an internet connection.
+
+The demo account is `test@example.com` with password `password`.
+
+Re-running the seeder resets demonstration prices and stock. For an existing
+database, apply migrations without reseeding to preserve current stock.
+
+### 5. Build the frontend
+
+```sh
+npm run build
+```
+
+## Running locally
+
+Start the Laravel server from the repository root:
+
+```sh
+php artisan serve --host=127.0.0.1 --port=8000
+```
+
+Open <http://127.0.0.1:8000>. The catalog is at
+<http://127.0.0.1:8000/shop>, and the cart is at
+<http://127.0.0.1:8000/cart>. No login is required to browse the catalog.
+
+The server serves the compiled frontend assets. After changing frontend
+code, run `npm run build` again. Alternatively, keep this running in another
+terminal and refresh the browser after each rebuild:
+
+```sh
+npm run build -- --watch
+```
+
+If you use features that dispatch queued jobs, start a worker in another terminal:
+
+```sh
+php artisan queue:work
+```
+
+The repository also includes a Sail/Caddy stack for local HTTPS on
+`blog-api.local` and `admin.blog-api.local`. It requires its own database,
+hostname, and certificate configuration; see
+[local certificate instructions](docker/certs/README.md).
+The Vite development server is configured for those custom domains.
+
+## Updating an existing installation
+
+After checking out updated code:
+
+```sh
+composer install
+npm ci --ignore-scripts
+php artisan config:clear
+php artisan migrate
+npm run build
+```
+
+Keep your existing `.env` and application key. The catalog migrations preserve
+existing products and historical orders. The PLN price migration assigns new
+prices to the known demonstration products without resetting their stock.
+
+## Prices
+
+`price_cents_pln` stores a fixed gross price in PLN grosz, including VAT.
+A variant can override its product's price. Fixed PLN prices do not depend
+on exchange rates, and VAT is not added again at checkout.
+
+Products without a fixed PLN price retain the legacy EUR net calculation.
+Their display price requires an available exchange rate.
+
+Default delivery settings are configurable in `.env`:
+
+```dotenv
+DELIVERY_STANDARD_GROSS_PLN_CENTS=2900
+DELIVERY_EXPRESS_GROSS_PLN_CENTS=5900
+DELIVERY_FREE_SHIPPING_GROSS_PLN_CENTS=29900
+```
+
+These represent standard delivery at PLN 29, express delivery at PLN 59,
+and free standard delivery for orders of at least PLN 299.
+
+## Verification
+
+Run the backend tests against an isolated SQLite database in memory:
+
+```sh
+php artisan config:clear
+DB_CONNECTION=sqlite DB_DATABASE=:memory: DB_URL= php artisan test
+```
+
+The explicit database settings keep the test suite separate from your local
+application data. The suite covers catalog hierarchy, dictionaries, product
+details, availability, pricing, cart and checkout integration, and migrations.
+
+Check PHP formatting and compile the frontend:
+
+```sh
+vendor/bin/pint --test
+npm run build
+```
+
+## Documentation
+
+- [Module 1 functional specification in Polish](docs/module01_product_catalog_pl.docx).
+- [Module 1 implementation and data management notes in Polish](docs/module01_product_catalog.md).
