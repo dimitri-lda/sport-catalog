@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\MarketPreferenceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SavedAddressController;
 use App\Http\Controllers\StoreController;
@@ -19,7 +18,6 @@ Route::patch('/cart', [CartController::class, 'update'])->name('store.cart.updat
 Route::get('/checkout', [StoreController::class, 'checkout'])->name('store.checkout');
 Route::post('/checkout', [StoreController::class, 'placeOrder'])->name('store.checkout.place');
 Route::get('/orders/{order:number}', [StoreController::class, 'order'])->name('store.order');
-Route::post('/preferences', [MarketPreferenceController::class, 'update'])->name('market.preferences.update');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard', ['orders' => Order::where('user_id', request()->user()->id)->with('items')->latest()->get()]);

@@ -34,7 +34,7 @@ class CartService
         $items = $cart->items->map(function ($item) {
             $price = $item->variant->price_cents_net ?? $item->variant->product->price_cents_net;
 
-            return ['id' => $item->id, 'quantity' => $item->quantity, 'variant_id' => $item->variant_id, 'variant_name' => $item->variant->localized_name, 'name' => $item->variant->product->localized_name, 'image_url' => $item->variant->product->image_url, 'unit_price_cents' => $price, 'line_total_cents' => $price * $item->quantity];
+            return ['id' => $item->id, 'quantity' => $item->quantity, 'variant_id' => $item->product_variant_id, 'variant_name' => $item->variant->localized_name, 'name' => $item->variant->product->localized_name, 'image_url' => $item->variant->product->image_url, 'unit_price_cents' => $price, 'line_total_cents' => $price * $item->quantity];
         });
 
         $data = ['items' => $items->values(), 'subtotal_cents' => $items->sum('line_total_cents'), 'count' => $items->sum('quantity')];

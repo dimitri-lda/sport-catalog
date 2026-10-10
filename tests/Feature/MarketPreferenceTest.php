@@ -10,11 +10,9 @@ class MarketPreferenceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_a_manual_market_and_locale_selection_is_saved_in_the_session(): void
+    public function test_market_preferences_endpoint_is_removed_from_the_single_market_storefront(): void
     {
-        $this->post(route('market.preferences.update'), ['country' => 'BY', 'locale' => 'ru'])
-            ->assertRedirect()
-            ->assertSessionHas('market', ['country' => 'BY', 'locale' => 'ru']);
+        $this->post('/preferences', ['country' => 'BY', 'locale' => 'ru'])->assertNotFound();
     }
 
     public function test_market_context_uses_polish_currency_and_tax_for_poland(): void
