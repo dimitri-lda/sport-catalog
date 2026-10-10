@@ -61,11 +61,43 @@ zewnętrznych spacji. Pole `brand` pozostaje dla zgodności i rollbacku;
 
 Witryna używa polskiego języka i PLN niezależnie od zapisanych wcześniej
 preferencji rynku. Usunięto przełącznik regionu i języka oraz geolokalizację
-żądania. Istniejące ceny pozostają EUR netto w bazie; aktualny serwis cen
-przelicza je na PLN i dodaje polski VAT. Bez dostępnego kursu strona pokazuje
-brak ceny zamiast oznaczać cenę EUR jako PLN. Zmiana bazowych cen na stałe PLN
-wymaga odrębnej migracji i ustalonego sposobu przeliczenia. Historyczne
-zamówienia oraz kontrakty serwisu wyceny pozostają zachowane.
+żądania. Pole `price_cents_pln` zawiera stałą cenę brutto w groszach PLN,
+łącznie z VAT. Wariant może nadpisać cenę produktu; brak ceny wariantu
+powoduje użycie ceny produktu. Wycena nie dodaje VAT ponownie i nie wymaga
+kursu walut dla produktów ze stałą ceną PLN.
+
+Nowe ceny demonstracyjne:
+
+| Produkt | Cena brutto PLN |
+| --- | ---: |
+| Cloudswift 4 | 849,00 |
+| Move Training Mat | 229,00 |
+| Pure Aero 98 | 1099,00 |
+| Trail Shell Jacket | 649,00 |
+| Aero Run Shorts | 199,00 |
+| Kettlebell 12 kg | 249,00 |
+| Court Backpack | 349,00 |
+| Alpine Daypack | 499,00 |
+
+Migracja ustawia te kwoty dla istniejących demonstracyjnych produktów i ich
+domyślnych wariantów bez resetowania zapasów; nie trzeba ponownie uruchamiać
+seedera. Są to ceny demonstracyjne, a nie bieżące oferty producentów.
+Produkty bez `price_cents_pln` zachowują dotychczasową wycenę EUR netto
+z przeliczeniem na PLN i dodaniem VAT. Bez kursu ich cena jest niedostępna.
+Sortowanie porównuje ceny PLN; produkty bez możliwej wyceny trafiają na koniec.
+Historyczne zamówienia zachowują zapisane kwoty i waluty.
+
+Przykład ustawienia ceny 299,00 PLN brutto:
+
+```php
+$product->update(['price_cents_pln' => 29900]);
+$variant->update(['price_cents_pln' => null]); // cena produktu
+```
+
+Dostawa standardowa kosztuje 29,00 PLN brutto (bezpłatna od 299,00 PLN),
+a ekspresowa 59,00 PLN brutto. Ustawienia `commerce.delivery.*_gross_pln_cents`
+można zmienić przez odpowiednie zmienne `DELIVERY_*_GROSS_PLN_CENTS`.
+Adres dostawy nie zmienia waluty zamówienia PLN.
 
 ## Weryfikacja
 
@@ -76,5 +108,8 @@ npm run build
 
 `ProductCatalogTest` obejmuje hierarchię, paginację, słowniki, galerię,
 parametry, dostępność, integrację z koszykiem, migrację i rollback marek,
-błędy wyceny oraz powtarzalność seedera. Testy działają na izolowanej bazie
-SQLite w pamięci; nie należy resetować lokalnej bazy w celu uruchomienia testów.
+błędy wyceny oraz powtarzalność seedera. `FixedPlnPricingTest` sprawdza ceny
+bez kursów walut, warianty, koszyk,
+zamówienia, sortowanie mieszanych cen i migrację cen demonstracyjnych.
+Testy działają na SQLite w pamięci; nie należy resetować lokalnej bazy
+w celu uruchomienia testów.

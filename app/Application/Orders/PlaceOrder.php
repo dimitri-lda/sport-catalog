@@ -7,7 +7,6 @@ use App\Domain\Orders\Order;
 use App\Domain\Orders\Repository\OrderRepository;
 use App\Domain\Orders\ValueObjects\DeliveryMethod;
 use App\Domain\Orders\ValueObjects\ShippingAddress;
-use App\Services\MarketContext;
 use App\Services\PricingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -18,15 +17,15 @@ final readonly class PlaceOrder
         private CartRepository $carts,
         private OrderRepository $orders,
         private PricingService $pricing,
-        private MarketContext $markets,
     ) {}
 
     /** @param array{email:string,phone:string,first_name:string,last_name:string,line1:string,line2?:?string,city:string,postal_code:string,country:string,delivery_method:string} $data */
     public function handle(array $data, ?int $userId, ?string $cartToken, array $market): Order
     {
-        return DB::transaction(function () use ($data, $userId, $cartToken): Order {
+        return DB::transaction(function () use ($data, $userId, $cartToken, $market): Order {
             $method = DeliveryMethod::from($data['delivery_method']);
-            $context = $this->markets->make($data['country'], $market['locale'] ?? null);
+            // The shipping address does not change the storefront price or currency.
+            $context = $market;
             $quote = $this->pricing->quote($this->carts->orderLinesFor($userId, $cartToken), $context, $method);
             $order = new Order(
                 number: 'SP-'.strtoupper(Str::random(8)),

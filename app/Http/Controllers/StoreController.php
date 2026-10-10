@@ -51,12 +51,15 @@ class StoreController extends Controller
             }
             $query->whereIn('category_id', $ids);
         }
-        if ($request->get('sort') === 'price_asc') {
-            $query->orderBy('price_cents_net');
-        } elseif ($request->get('sort') === 'price_desc') {
-            $query->orderByDesc('price_cents_net');
+        if (in_array($request->get('sort'), ['price_asc', 'price_desc'])) {
+            $multiplier = $query->clone()->whereNull('price_cents_pln')->exists()
+                ? $pricing->legacyPlnGrossMultiplier($request->attributes->get('market')) : 1;
+            $direction = $request->get('sort') === 'price_asc' ? 'ASC' : 'DESC';
+            // Prices which cannot currently be calculated follow known prices.
+            $query->orderByRaw('COALESCE(price_cents_pln, price_cents_net * ?) IS NULL ASC', [$multiplier])
+                ->orderByRaw('COALESCE(price_cents_pln, price_cents_net * ?) '.$direction, [$multiplier])->orderBy('id');
         } else {
-            $query->latest();
+            $query->latest()->orderByDesc('id');
         }
 
         return Inertia::render('Store/Catalog', [
@@ -142,9 +145,9 @@ class StoreController extends Controller
     private function priced(Product $product, PricingService $pricing, array $market): Product
     {
         try {
-            $product->setAttribute('display_price', $pricing->displayPrice($product->price_cents_net, $market));
+            $product->setAttribute('display_price', $pricing->displayPrice($product->price_cents_net, $market, $product->price_cents_pln));
             $product->variants->each(function ($variant) use ($product, $pricing, $market) {
-                $variant->setAttribute('display_price', $pricing->displayPrice($variant->price_cents_net ?? $product->price_cents_net, $market));
+                $variant->setAttribute('display_price', $pricing->displayPrice($variant->price_cents_net ?? $product->price_cents_net, $market, $variant->price_cents_pln ?? $product->price_cents_pln));
             });
         } catch (DomainException $e) {
             $product->setAttribute('pricing_error', $e->getMessage());

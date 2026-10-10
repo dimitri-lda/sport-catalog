@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
-    protected $fillable = ['brand_id', 'manufacturer_id', 'category_id', 'name', 'name_translations', 'slug', 'description', 'description_translations', 'price_cents_net', 'compare_at_price_cents_net', 'brand', 'image_url', 'featured', 'active'];
+    protected $fillable = ['brand_id', 'manufacturer_id', 'category_id', 'name', 'name_translations', 'slug', 'description', 'description_translations', 'price_cents_pln', 'price_cents_net', 'compare_at_price_cents_net', 'brand', 'image_url', 'featured', 'active'];
 
     protected static function booted(): void
     {
@@ -18,6 +18,7 @@ class Product extends Model
                 'category_id' => ['required', 'exists:categories,id'],
                 'brand_id' => ['nullable', 'exists:brands,id'],
                 'manufacturer_id' => ['nullable', 'exists:manufacturers,id'],
+                'price_cents_pln' => ['nullable', 'integer', 'min:0', 'max:4294967295'],
             ])->validate();
         });
     }
@@ -61,7 +62,7 @@ class Product extends Model
 
     protected function casts(): array
     {
-        return ['featured' => 'boolean', 'active' => 'boolean', 'name_translations' => 'array', 'description_translations' => 'array'];
+        return ['price_cents_pln' => 'integer', 'featured' => 'boolean', 'active' => 'boolean', 'name_translations' => 'array', 'description_translations' => 'array'];
     }
 
     public function getLocalizedNameAttribute(): string

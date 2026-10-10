@@ -67,13 +67,19 @@ class DatabaseSeeder extends Seeder
             'trail-shell-jacket' => [['Przeznaczenie', 'Aktywność w górach', null]],
             'alpine-daypack' => [['Pojemność', '24', 'l']],
         ];
+        $pricesPln = [
+            'cloudswift-4' => 84900, 'move-training-mat' => 22900,
+            'pure-aero-98' => 109900, 'trail-shell-jacket' => 64900,
+            'aero-run-shorts' => 19900, 'kettlebell-12kg' => 24900,
+            'court-backpack' => 34900, 'alpine-daypack' => 49900,
+        ];
         foreach ($products as $data) {
             $brand = Brand::updateOrCreate(['slug' => Str::slug($data['brand'])], ['name' => $data['brand']]);
             $manufacturer = Manufacturer::updateOrCreate(['slug' => $brand->slug], ['name' => $brand->name]);
             $category = Category::where('slug', $assignments[$data['slug']])->firstOrFail();
             unset($data['category']);
-            $product = Product::updateOrCreate(['slug' => $data['slug']], [...$data, 'category_id' => $category->id, 'brand_id' => $brand->id, 'manufacturer_id' => $manufacturer->id]);
-            $product->variants()->updateOrCreate(['sku' => strtoupper($product->slug).'-ONE'], ['name' => 'Uniwersalny', 'stock' => $product->slug === 'court-backpack' ? 0 : 24, 'price_cents_net' => $product->price_cents_net]);
+            $product = Product::updateOrCreate(['slug' => $data['slug']], [...$data, 'price_cents_pln' => $pricesPln[$data['slug']], 'category_id' => $category->id, 'brand_id' => $brand->id, 'manufacturer_id' => $manufacturer->id]);
+            $product->variants()->updateOrCreate(['sku' => strtoupper($product->slug).'-ONE'], ['name' => 'Uniwersalny', 'price_cents_pln' => $product->price_cents_pln, 'stock' => $product->slug === 'court-backpack' ? 0 : 24, 'price_cents_net' => $product->price_cents_net]);
             foreach ($specifications[$product->slug] as $position => [$name, $value, $unit]) {
                 $product->specifications()->updateOrCreate(['name' => $name], compact('value', 'unit', 'position'));
             }

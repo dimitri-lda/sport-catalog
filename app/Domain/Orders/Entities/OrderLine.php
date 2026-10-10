@@ -14,6 +14,7 @@ final readonly class OrderLine
         public int $quantity,
         public int $netUnitPriceCents = 0,
         public int $taxCents = 0,
+        public ?int $priceCentsPln = null,
     ) {
         if ($quantity < 1) {
             throw new DomainException('An order line must contain at least one item.');
