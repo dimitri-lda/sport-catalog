@@ -4,11 +4,11 @@ The certificate files are intentionally excluded from Git. Generate them once on
 
 ```sh
 mkcert -install
-mkcert -cert-file docker/certs/blog-api.local.pem \
-  -key-file docker/certs/blog-api.local-key.pem \
-  blog-api.local admin.blog-api.local
+mkcert -cert-file docker/certs/sport-catalog.local.pem \
+  -key-file docker/certs/sport-catalog.local-key.pem \
+  sport-catalog.local admin.sport-catalog.local
 ```
 
-Then start the stack with `docker compose up -d`. The site is available at `https://blog-api.local` and HTTP redirects to HTTPS.
+Then start the stack with `docker compose up -d`. The site is available at `https://sport-catalog.local` and HTTP redirects to HTTPS.
 
-For hot reloading, run `./vendor/bin/sail npm run dev`; Vite is served at `https://blog-api.local:5173` and uses the same certificate.
+For hot reloading, run `./vendor/bin/sail npm run dev`; Vite is served at `https://sport-catalog.local:5173` and uses the same certificate.

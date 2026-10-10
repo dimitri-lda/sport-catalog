@@ -7,7 +7,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductVariant extends Model
 {
-    protected $fillable = ['product_id', 'name', 'name_translations', 'sku', 'price_cents_net', 'stock'];
+    protected $fillable = ['product_id', 'name', 'name_translations', 'sku', 'price_cents_pln', 'price_cents_net', 'stock'];
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $variant) {
+            validator($variant->getAttributes(), [
+                'price_cents_pln' => ['nullable', 'integer', 'min:0', 'max:4294967295'],
+            ])->validate();
+        });
+    }
+
+    public function plnPriceCents(): ?int
+    {
+        return $this->price_cents_pln ?? $this->product->price_cents_pln;
+    }
 
     public function product(): BelongsTo
     {
@@ -16,7 +30,7 @@ class ProductVariant extends Model
 
     protected function casts(): array
     {
-        return ['name_translations' => 'array'];
+        return ['price_cents_pln' => 'integer', 'name_translations' => 'array'];
     }
 
     public function getLocalizedNameAttribute(): string

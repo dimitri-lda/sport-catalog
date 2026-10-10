@@ -2,11 +2,15 @@
 
 namespace Database\Seeders;
 
+use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Manufacturer;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,9 +21,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
+        User::firstOrCreate(['email' => 'test@example.com'], [
             'name' => 'Test User',
-            'email' => 'test@example.com',
+            'password' => Hash::make('password'),
         ]);
         $categories = [
             ['name' => 'Running', 'slug' => 'running', 'image_url' => 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?auto=format&fit=crop&w=700&q=80'],
@@ -40,11 +44,46 @@ class DatabaseSeeder extends Seeder
         foreach ($categories as $data) {
             Category::updateOrCreate(['slug' => $data['slug']], $data);
         }
+        $subcategories = [
+            'running' => ['running-shoes' => 'Buty do biegania', 'running-clothing' => 'Odzież do biegania'],
+            'fitness' => ['training-accessories' => 'Akcesoria treningowe', 'weights' => 'Obciążenia'],
+            'tennis' => ['rackets' => 'Rakiety', 'tennis-bags' => 'Torby tenisowe'],
+            'outdoor' => ['outdoor-clothing' => 'Odzież outdoor', 'backpacks' => 'Plecaki'],
+        ];
+        foreach ($subcategories as $parent => $children) {
+            foreach ($children as $slug => $name) {
+                Category::updateOrCreate(['slug' => $slug], ['name' => $name, 'parent_id' => Category::where('slug', $parent)->value('id')]);
+            }
+        }
+        $assignments = ['cloudswift-4' => 'running-shoes', 'aero-run-shorts' => 'running-clothing', 'move-training-mat' => 'training-accessories', 'kettlebell-12kg' => 'weights', 'pure-aero-98' => 'rackets', 'court-backpack' => 'tennis-bags', 'trail-shell-jacket' => 'outdoor-clothing', 'alpine-daypack' => 'backpacks'];
+        // Illustrative catalog specifications, not certified manufacturer data.
+        $specifications = [
+            'cloudswift-4' => [['Przeznaczenie', 'Bieganie po asfalcie', null]],
+            'aero-run-shorts' => [['Typ', 'Spodenki do biegania', null]],
+            'move-training-mat' => [['Przeznaczenie', 'Trening w domu i studiu', null]],
+            'kettlebell-12kg' => [['Materiał', 'Żeliwo', null], ['Masa', '12', 'kg']],
+            'pure-aero-98' => [['Dyscyplina', 'Tenis', null]],
+            'court-backpack' => [['Przeznaczenie', 'Transport rakiety i akcesoriów', null]],
+            'trail-shell-jacket' => [['Przeznaczenie', 'Aktywność w górach', null]],
+            'alpine-daypack' => [['Pojemność', '24', 'l']],
+        ];
+        $pricesPln = [
+            'cloudswift-4' => 84900, 'move-training-mat' => 22900,
+            'pure-aero-98' => 109900, 'trail-shell-jacket' => 64900,
+            'aero-run-shorts' => 19900, 'kettlebell-12kg' => 24900,
+            'court-backpack' => 34900, 'alpine-daypack' => 49900,
+        ];
         foreach ($products as $data) {
-            $category = Category::where('slug', $data['category'])->first();
+            $brand = Brand::updateOrCreate(['slug' => Str::slug($data['brand'])], ['name' => $data['brand']]);
+            $manufacturer = Manufacturer::updateOrCreate(['slug' => $brand->slug], ['name' => $brand->name]);
+            $category = Category::where('slug', $assignments[$data['slug']])->firstOrFail();
             unset($data['category']);
-            $product = Product::updateOrCreate(['slug' => $data['slug']], [...$data, 'category_id' => $category->id]);
-            $product->variants()->updateOrCreate(['sku' => strtoupper($product->slug).'-ONE'], ['name' => 'One size', 'stock' => 24, 'price_cents_net' => $product->price_cents_net]);
+            $product = Product::updateOrCreate(['slug' => $data['slug']], [...$data, 'price_cents_pln' => $pricesPln[$data['slug']], 'category_id' => $category->id, 'brand_id' => $brand->id, 'manufacturer_id' => $manufacturer->id]);
+            $product->variants()->updateOrCreate(['sku' => strtoupper($product->slug).'-ONE'], ['name' => 'Uniwersalny', 'price_cents_pln' => $product->price_cents_pln, 'stock' => $product->slug === 'court-backpack' ? 0 : 24, 'price_cents_net' => $product->price_cents_net]);
+            foreach ($specifications[$product->slug] as $position => [$name, $value, $unit]) {
+                $product->specifications()->updateOrCreate(['name' => $name], compact('value', 'unit', 'position'));
+            }
+            $product->images()->updateOrCreate(['position' => 1], ['url' => preg_replace('/w=900/', 'w=1200', $product->image_url), 'alt' => $product->name.' — zdjęcie demonstracyjne']);
         }
     }
 }

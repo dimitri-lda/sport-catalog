@@ -19,7 +19,7 @@ final class EloquentCartRepository implements CartRepository
                 throw new DomainException("Product variant {$variant->id} is unavailable.");
             }
 
-            return new OrderLine($variant->id, $variant->product->localized_name, $variant->localized_name, $price, $item->quantity);
+            return new OrderLine($variant->id, $variant->product->localized_name, $variant->localized_name, $price, $item->quantity, priceCentsPln: $variant->plnPriceCents());
         })->all() ?? [];
 
         return $lines;

@@ -4,6 +4,9 @@ return [
     'default_country' => env('COMMERCE_DEFAULT_COUNTRY', 'DE'),
     'geoip_url' => env('GEOIP_URL', 'https://ipwho.is/{ip}'),
     'delivery' => [
+        'standard_gross_pln_cents' => (int) env('DELIVERY_STANDARD_GROSS_PLN_CENTS', 2900),
+        'express_gross_pln_cents' => (int) env('DELIVERY_EXPRESS_GROSS_PLN_CENTS', 5900),
+        'free_shipping_gross_pln_cents' => (int) env('DELIVERY_FREE_SHIPPING_GROSS_PLN_CENTS', 29900),
         'standard_net_cents' => (int) env('DELIVERY_STANDARD_NET_CENTS', 590),
         'express_net_cents' => (int) env('DELIVERY_EXPRESS_NET_CENTS', 1290),
         'free_shipping_gross_eur_cents' => (int) env('DELIVERY_FREE_SHIPPING_GROSS_EUR_CENTS', 5000),
